@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -25,25 +24,54 @@ import com.example.credma.screens.CardScreen
 import com.example.credma.ui.theme.CredMaTheme
 import com.example.credma.viewmodel.CardViewModel
 
+import androidx.compose.runtime.getValue
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.credma.components.BottomNavigationBar
+import com.example.credma.navigation.BottomNavItem
+import com.example.credma.screens.AllCardsScreen
+import com.example.credma.screens.AllTransactionsScreen
+import com.example.credma.screens.SettingsScreen
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             CredMaTheme {
-                Surface(
+                val navController = rememberNavController()
+                val viewmodel: CardViewModel = viewModel(factory = viewModelFactory {
+                    initializer {
+                        val app = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as CredMaApplication)
+                        CardViewModel(app.cardRepository, app.transactionRepository)
+                    }
+                })
+
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+                val showBottomBar = currentRoute in listOf(
+                    BottomNavItem.Card.route,
+                    BottomNavItem.AllCards.route,
+                    BottomNavItem.AllTransactions.route,
+                    BottomNavItem.Settings.route
+                )
+
+                Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    val navController = rememberNavController()
-                    val viewmodel: CardViewModel = viewModel(factory = viewModelFactory {
-                        initializer {
-                            val app = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as CredMaApplication)
-                            CardViewModel(app.cardRepository, app.transactionRepository)
+                    bottomBar = {
+                        if (showBottomBar) {
+                            BottomNavigationBar(navController = navController)
                         }
-                    })
-                    NavHost(navController = navController, startDestination = "card") {
-                        composable("card") { CardScreen(navController, viewmodel) }
+                    }
+                ) { paddingValues ->
+                    NavHost(
+                        navController = navController, 
+                        startDestination = BottomNavItem.Card.route,
+                        modifier = Modifier.padding(paddingValues)
+                    ) {
+                        composable(BottomNavItem.Card.route) { CardScreen(navController, viewmodel) }
+                        composable(BottomNavItem.AllCards.route) { AllCardsScreen() }
+                        composable(BottomNavItem.AllTransactions.route) { AllTransactionsScreen() }
+                        composable(BottomNavItem.Settings.route) { SettingsScreen() }
                         composable("add_card") { AddCardScreen(viewmodel, navController) }
                     }
                 }
