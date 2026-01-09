@@ -9,6 +9,8 @@ import com.example.credma.model.CreditCard
 import com.example.credma.model.Transaction
 import com.example.credma.repository.CardRepository
 import com.example.credma.repository.TransactionRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class CardViewModel(
+@HiltViewModel
+class CardViewModel @Inject constructor(
     private val cardRepository: CardRepository,
     private val transactionRepository: TransactionRepository
 ): ViewModel() {
